@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { addTodo, fetchTodos } from "./store/todoSlice";
 import NewTodoForm from "./components/NewTodoForm";
@@ -10,6 +10,9 @@ import "./App.css";
 function App() {
   const [text, setText] = useState("");
   const dispatch = useDispatch();
+
+  // Global state
+  const { error, status } = useSelector((state) => state.todos);
 
   const handleAction = () => {
     if (text.trim().length) {
@@ -30,6 +33,8 @@ function App() {
         updateText={setText}
         handleAction={handleAction}
       />
+      {status === "pending" && <h3>Loading...</h3>}
+      {error && <h3>An error occupied: {error}</h3>}
       <TodoList />
     </div>
   );

@@ -4,7 +4,7 @@ const baseURL = "https://jsonplaceholder.typicode.com/";
 
 // API call
 export const fetchTodos = createAsyncThunk(
-  "todos/fetchTodos",
+  "todos/fetchTodos", // <-- action name
   async function (_, { rejectWithValue }) {
     try {
       const response = await fetch(`${baseURL}todos?_limit=10`);
@@ -49,11 +49,11 @@ const todoSlice = createSlice({
   },
   extraReducers: {
     [fetchTodos.pending]: (state) => {
-      state.status = "loading";
+      state.status = "pending";
       state.error = null;
     },
     [fetchTodos.fulfilled]: (state, action) => {
-      state.status = "resolved";
+      state.status = "fulfilled";
       state.todos = action.payload;
       state.error = null;
     },
