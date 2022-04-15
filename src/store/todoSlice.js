@@ -74,6 +74,42 @@ export const toggleStatus = createAsyncThunk(
   }
 );
 
+export const addNewTodo = createAsyncThunk(
+  "todos/addNewTodo",
+  // get text from input, when async function is executed
+  async function (text, { rejectWithValue, dispatch }) {
+    try {
+      // create todo
+      const todo = {
+        title: text,
+        userId: 1,
+        completed: false,
+      };
+
+      // add todo to server
+      const response = await fetch(`${baseURL}todos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(todo),
+      });
+
+      if (!response.ok) {
+        throw new Error("Can't add task. Server error.");
+      }
+
+      // get server response (added todo)
+      const data = await response.json();
+
+      // add new todo redux state
+      dispatch(addTodo(data));
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 // Error Setter
 const setError = (state, action) => {
   state.status = "rejected";
@@ -90,11 +126,7 @@ const todoSlice = createSlice({
   },
   reducers: {
     addTodo(state, action) {
-      state.todos.push({
-        id: new Date().toISOString(),
-        title: action.payload.text,
-        completed: false,
-      });
+      state.todos.push(action.payload);
     },
     toggleComplete(state, action) {
       const toggledTodo = state.todos.find(
@@ -123,6 +155,7 @@ const todoSlice = createSlice({
     },
     [deleteTodo.rejected]: setError,
     [toggleStatus.rejected]: setError,
+    [addNewTodo.rejected]: setError,
   },
 });
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { addTodo, fetchTodos } from "./store/todoSlice";
+import { addNewTodo, fetchTodos } from "./store/todoSlice";
 import NewTodoForm from "./components/NewTodoForm";
 import TodoList from "./components/TodoList";
 
@@ -16,7 +16,7 @@ function App() {
 
   const handleAction = () => {
     if (text.trim().length) {
-      dispatch(addTodo({ text }));
+      dispatch(addNewTodo(text));
       setText("");
     }
   };
