@@ -35,8 +35,39 @@ export const deleteTodo = createAsyncThunk(
       if (!response.ok) {
         throw new Error("Can't delete task. Server error.");
       }
-      // remove todo from local state
+      // remove todo from redux state
       dispatch(removeTodo({ id }));
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const toggleStatus = createAsyncThunk(
+  "todos/toggleStatus",
+  async function (id, { rejectWithValue, dispatch, getState }) {
+    // get clicked todo with getState (getState gives global state)
+    const todo = getState().todos.todos.find((todo) => todo.id === id);
+
+    try {
+      // toggle todo status on server
+      const response = await fetch(`${baseURL}todos/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          // toggle clicked todo
+          completed: !todo.completed,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Can't toggle status. Server error.");
+      }
+
+      // toggle todo status in redux state
+      dispatch(toggleComplete({ id }));
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -91,6 +122,7 @@ const todoSlice = createSlice({
       state.error = action.payload;
     },
     [deleteTodo.rejected]: setError,
+    [toggleStatus.rejected]: setError,
   },
 });
 
