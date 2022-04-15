@@ -22,6 +22,34 @@ export const fetchTodos = createAsyncThunk(
   }
 );
 
+export const deleteTodo = createAsyncThunk(
+  "todos/deleteTodo", // <-- action name
+  async function (id, { rejectWithValue, dispatch }) {
+    try {
+      // remove todo from server
+      const response = await fetch(`${baseURL}todos/${id}`, {
+        method: "DELETE",
+      });
+
+      console.log(response);
+      if (!response.ok) {
+        throw new Error("Can't delete task. Server error.");
+      }
+      // remove todo from local state
+      dispatch(removeTodo({ id }));
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// Error Setter
+const setError = (state, action) => {
+  state.status = "rejected";
+  // set value to error from rejectWithValue parameter
+  state.error = action.payload;
+};
+
 const todoSlice = createSlice({
   name: "todos",
   initialState: {
@@ -62,6 +90,7 @@ const todoSlice = createSlice({
       // set value to error from rejectWithValue parameter
       state.error = action.payload;
     },
+    [deleteTodo.rejected]: setError,
   },
 });
 
