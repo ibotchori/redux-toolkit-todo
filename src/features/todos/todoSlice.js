@@ -1,20 +1,14 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import todoService from "./todoService";
 
 const baseURL = "https://jsonplaceholder.typicode.com/";
 
-// API call
 export const fetchTodos = createAsyncThunk(
   "todos/fetchTodos", // <-- action name
   async function (_, { rejectWithValue }) {
     try {
-      const response = await fetch(`${baseURL}todos?_limit=10`);
-
-      if (!response.ok) {
-        throw new Error("Server Error!");
-      }
-
-      const data = await response.json();
-      return data;
+      // API call from todoService file
+      return await todoService.fetchTodos();
     } catch (error) {
       // pass error message to fetchTodos.reject (action.payload)
       return rejectWithValue(error.message);
