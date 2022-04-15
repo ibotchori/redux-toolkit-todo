@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { addNewTodo, fetchTodos } from "./store/todoSlice";
+import { addNewTodo, fetchTodos } from "./features/todos/todoSlice";
 import NewTodoForm from "./components/NewTodoForm";
 import TodoList from "./components/TodoList";
 
