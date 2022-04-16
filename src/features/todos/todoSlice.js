@@ -1,8 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import todoService from "./todoService";
 
-const baseURL = "https://jsonplaceholder.typicode.com/";
-
 export const fetchTodos = createAsyncThunk(
   "todos/fetchTodos", // <-- action name
   async function (_, { rejectWithValue }) {
@@ -20,18 +18,13 @@ export const deleteTodo = createAsyncThunk(
   "todos/deleteTodo", // <-- action name
   async function (id, { rejectWithValue, dispatch }) {
     try {
-      // remove todo from server
-      const response = await fetch(`${baseURL}todos/${id}`, {
-        method: "DELETE",
-      });
-
-      console.log(response);
-      if (!response.ok) {
-        throw new Error("Can't delete task. Server error.");
-      }
-      // remove todo from redux state
+      // remove todo from redux state first
       dispatch(removeTodo({ id }));
+
+      // API call from todoService file, remove todo from server
+      return await todoService.deleteTodo(id);
     } catch (error) {
+      // pass error message to fetchTodos.reject (action.payload)
       return rejectWithValue(error.message);
     }
   }
@@ -44,24 +37,10 @@ export const toggleStatus = createAsyncThunk(
     const todo = getState().todos.todos.find((todo) => todo.id === id);
 
     try {
-      // toggle todo status on server
-      const response = await fetch(`${baseURL}todos/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          // toggle clicked todo
-          completed: !todo.completed,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Can't toggle status. Server error.");
-      }
-
-      // toggle todo status in redux state
+      // toggle todo status in redux state first
       dispatch(toggleComplete({ id }));
+      // API call from todoService file, toggle todo from server
+      return await todoService.toggleStatus(id, todo);
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -71,33 +50,16 @@ export const toggleStatus = createAsyncThunk(
 export const addNewTodo = createAsyncThunk(
   "todos/addNewTodo",
   // get text from input, when async function is executed
-  async function (text, { rejectWithValue, dispatch }) {
+  async function (text, { rejectWithValue }) {
+    // create todo
+    const todo = {
+      title: text,
+      userId: 1,
+      completed: false,
+    };
     try {
-      // create todo
-      const todo = {
-        title: text,
-        userId: 1,
-        completed: false,
-      };
-
-      // add todo to server
-      const response = await fetch(`${baseURL}todos`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(todo),
-      });
-
-      if (!response.ok) {
-        throw new Error("Can't add task. Server error.");
-      }
-
-      // get server response (added todo)
-      const data = await response.json();
-
-      // add new todo redux state
-      dispatch(addTodo(data));
+      // API call from todoService file, add new todo to server
+      return await todoService.addNewTodo(todo);
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -149,7 +111,17 @@ const todoSlice = createSlice({
     },
     [deleteTodo.rejected]: setError,
     [toggleStatus.rejected]: setError,
-    [addNewTodo.rejected]: setError,
+    [addNewTodo.fulfilled]: (state, action) => {
+      state.status = "fulfilled";
+      // add new todo redux state
+      state.todos.push(action.payload);
+      state.error = null;
+    },
+    [addNewTodo.rejected]: (state, action) => {
+      state.status = "rejected";
+      // set value to error from rejectWithValue parameter
+      state.error = action.payload;
+    },
   },
 });
 
